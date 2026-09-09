@@ -273,54 +273,6 @@
         "Docker"
       ],
       "credentialUrl": "https://cloud.google.com/certification"
-    },
-    {
-      "id": "meta-mobile-dev",
-      "title": "Meta Certified Mobile Developer",
-      "issuer": "Meta",
-      "date": "2024",
-      "badge": "Certified",
-      "color": "#0666E5",
-      "logo": "",
-      "skills": [
-        "React Native",
-        "Mobile UI/UX",
-        "REST Integration"
-      ],
-      "credentialUrl": "https://www.coursera.org/professional-certificates/meta-android-developer"
-    },
-    {
-      "id": "firebase-prof",
-      "title": "Firebase Application Professional",
-      "issuer": "Google / Firebase",
-      "date": "2024",
-      "badge": "Professional",
-      "color": "#FFCA28",
-      "logo": "logos/firebase.png",
-      "skills": [
-        "Firestore",
-        "Authentication",
-        "Cloud Functions",
-        "Rules"
-      ],
-      "credentialUrl": "https://firebase.google.com/"
-    },
-    {
-      "id": "flutter-expert",
-      "title": "Flutter Cross-Platform Engineering",
-      "issuer": "Google Developer Ecosystem",
-      "date": "2023",
-      "badge": "Specialist",
-      "color": "#02569B",
-      "logo": "logos/flutter.png",
-      "skills": [
-        "Flutter",
-        "Dart",
-        "GetX",
-        "BLoC",
-        "State Management"
-      ],
-      "credentialUrl": "https://flutter.dev"
     }
   ],
   "achievements": [
