@@ -14,6 +14,7 @@ export function createDemo() {
   const frame = $('#demo-frame');
   const title = $('#demo-title');
   const meta = $('#demo-meta');
+  const highlights = $('#demo-highlights');
   const close = $('#demo-close');
 
   let open = false;
@@ -24,7 +25,11 @@ export function createDemo() {
     lastFocused = document.activeElement;
 
     title.textContent = project.title;
-    meta.innerHTML = `${esc(project.category)} &nbsp;·&nbsp; ${esc(project.year)} &nbsp;·&nbsp; ${esc(project.tech.join(' / '))}`;
+    meta.textContent = [project.category, project.platform, project.year, project.tech.join(' · ')]
+      .join('  —  ');
+    highlights.innerHTML = project.highlights
+      .map((line) => `<li>${esc(line)}</li>`)
+      .join('');
     frame.src = project.demo;
 
     root.dataset.open = 'true';

@@ -9,19 +9,32 @@ const ARROW = /* html */ `
   <path d="M7 17 17 7M9 7h8v8" />
 </svg>`;
 
-/** One brutalist row: index / name / tech chips / CTA. */
+/**
+ * One row: index / name + category / description + tech / CTA.
+ *
+ * The description is not decoration — without it the list is four proper nouns
+ * and a visitor has no idea what any of them do.
+ */
 const row = (project, i) => html`
   <button class="work-row" type="button"
           data-id="${esc(project.id)}"
-          data-accent="${esc(project.accent)}"
           style="--row-accent:${esc(project.accent)}"
           data-cursor="view" data-cursor-label="Watch"
-          aria-label="Open the ${esc(project.title)} demo">
-    <span class="work-index">${pad(i + 1)} / ${esc(project.year)}</span>
-    <span class="work-name">${esc(project.title)}</span>
-    <span class="work-tech">
-      ${project.tech.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}
+          aria-label="Watch the ${esc(project.title)} demo">
+    <span class="work-index">${pad(i + 1)} — ${esc(project.year)}</span>
+
+    <span>
+      <span class="work-name">${esc(project.title)}</span>
+      <span class="work-cat">${esc(project.category)} · ${esc(project.platform)}</span>
     </span>
+
+    <span>
+      <span class="work-desc">${esc(project.description)}</span>
+      <span class="work-tech">
+        ${project.tech.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}
+      </span>
+    </span>
+
     <span class="work-cta">Watch demo ${ARROW}</span>
   </button>
 `;
@@ -88,7 +101,6 @@ export function initWork(background, demo) {
     // and two writers on one transform will fight.
     peekImg.src = project.image;
     peekImg.alt = `${project.title} preview`;
-    peek.dataset.active = 'true';
     animate(peek, { opacity: [0, 1], duration: 400, ease: 'outQuad' });
     animate(peekImg, { scale: [1.18, 1], duration: 900, ease: 'out(4)' });
   };
@@ -106,7 +118,6 @@ export function initWork(background, demo) {
     if (coarse) return;
 
     animate(titleWrap, { opacity: 0, duration: 350, ease: 'outQuad' });
-    peek.dataset.active = 'false';
     animate(peek, { opacity: 0, duration: 300, ease: 'outQuad' });
   };
 

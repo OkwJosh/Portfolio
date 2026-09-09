@@ -1,13 +1,18 @@
 {
-  "name": "my-portfolio",
+  "name": "okwoli-portfolio",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "dev": "npm --prefix v3 run dev",
+    "studio": "npm --prefix v3 run studio",
+    "build": "npm --prefix v3 run build",
+    "preview": "npm --prefix v3 run preview",
+    "deploy": "npm --prefix v3 run build && firebase deploy --only hosting",
+    "dev:v1": "vite",
+    "build:v1": "vite build",
+    "dev:v2": "npm --prefix v2 run dev",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
@@ -30,5 +35,6 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.14",
     "vite": "^7.1.7"
-  }
+  },
+  "description": "Portfolio monorepo. v3 is the live site; v1 (root src/) and v2 are archived."
 }

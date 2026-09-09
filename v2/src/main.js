@@ -2,12 +2,14 @@ import './styles/main.css';
 
 import { $ } from './lib/dom.js';
 import { pointer } from './lib/pointer.js';
+import { identity } from './data/site.js';
 import { createBackground } from './three/background.js';
 import { createCursor } from './ui/cursor.js';
 import { createDemo } from './ui/demo.js';
 import { createHeroTimeline } from './ui/hero.js';
 import { initChrome } from './ui/chrome.js';
 import { initCounters, initReveals } from './ui/reveal.js';
+import { initTheme } from './ui/theme.js';
 import { initWork } from './ui/work.js';
 import { revealCanvas, runPreloader } from './ui/preloader.js';
 
@@ -26,12 +28,18 @@ function boot() {
 
   // ── 1. WebGL ────────────────────────────────────────────────────────────
   const canvas = $('#gl');
-  const background = createBackground(canvas);
+  const background = createBackground(canvas, identity.accent);
   revealCanvas(canvas);
   background.start();
 
-  // ── 2. DOM ──────────────────────────────────────────────────────────────
-  const chrome = initChrome();
+  // ── 2. Theme ────────────────────────────────────────────────────────────
+  // The <head> script already applied the theme to the DOM before first paint;
+  // this hooks up the toggle and keeps the WebGL scene in step, since blend
+  // modes and the occluder colour can't be expressed in CSS.
+  initTheme((theme) => background.setTheme(theme));
+
+  // ── 3. DOM ──────────────────────────────────────────────────────────────
+  const chrome = initChrome(background);
   const cursor = createCursor();
   const demo = createDemo();
   const work = initWork(background, demo);
@@ -43,7 +51,7 @@ function boot() {
     work.update(ctx);
   });
 
-  // ── 3. Choreography ─────────────────────────────────────────────────────
+  // ── 4. Choreography ─────────────────────────────────────────────────────
   const hero = createHeroTimeline();
 
   runPreloader().then(() => {

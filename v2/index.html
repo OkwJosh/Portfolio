@@ -4,10 +4,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#05060a" />
-  <title>Okwoli Joshua — Flutter Developer</title>
+  <title>Okwoli Joshua — Software Engineer</title>
   <meta name="description"
-    content="Okwoli Joshua — Flutter developer building cross-platform mobile products with Firebase, realtime data and offline-first architecture." />
+    content="Okwoli Joshua — software engineer building products across mobile, backend and cloud: Flutter and Dart on the client, Python, Node and Django behind it, Google Cloud and Firebase underneath." />
+
+  <!-- Resolve the theme before first paint. Inline and synchronous on purpose:
+       any async path here produces a flash of the wrong theme. -->
+  <script>
+    (function () {
+      var stored = null;
+      try { stored = localStorage.getItem('oj-theme'); } catch (e) { }
+      var prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+      document.documentElement.dataset.theme = stored || (prefersLight ? 'light' : 'dark');
+    })();
+  </script>
+  <meta name="theme-color" content="#05060a" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f3f4f8" media="(prefers-color-scheme: light)" />
 
   <!-- Variable display face (Archivo carries a width axis, which the brutalist
        headline styling drives down to ~76 for condensed weight). -->
@@ -26,10 +38,10 @@
   <div class="preloader" id="preloader">
     <div class="flex items-end justify-between gap-6">
       <div>
-        <p class="label">Okwoli Joshua</p>
-        <p class="label mt-1">Flutter Developer / Portfolio 2025</p>
+        <p class="label text-fg">Okwoli Joshua</p>
+        <p class="label mt-1">Software Engineer — Portfolio 2026</p>
       </div>
-      <p class="label" id="preloader-status">Compiling shaders</p>
+      <p class="label" id="preloader-status">Initialising renderer</p>
     </div>
     <p class="preloader-count" id="preloader-count">000</p>
     <div class="preloader-bar" id="preloader-bar"></div>
@@ -40,7 +52,6 @@
        FIXED CHROME
        ═══════════════════════════════════════════════════════════════════ -->
 
-  <!-- Scroll progress hairline -->
   <div class="chrome progress" id="progress"></div>
 
   <!-- Custom cursor: a hard dot + a lagging ring that swells on interactives -->
@@ -49,27 +60,34 @@
     <span class="cursor-label" id="cursor-label">View</span>
   </div>
 
-  <!-- Floating header -->
-  <header class="chrome site-header">
-    <a href="#index" class="label text-paper" data-cursor="link" style="letter-spacing:.2em">
-      OKWOLI<span class="text-volt">©</span>25
+  <header class="chrome site-header" id="site-header" data-scrolled="false">
+    <a href="#top" class="wordmark" data-cursor="link">
+      Okwoli Joshua<span class="text-volt">.</span>
     </a>
-    <nav class="hidden gap-6 md:flex" id="nav" aria-label="Primary"></nav>
-    <a class="label text-paper" data-cursor="link" id="resume-link" download="Okwoli_Joshua.pdf">
-      Resume ↓
-    </a>
+
+    <nav class="hidden gap-6 lg:flex" id="nav" aria-label="Primary"></nav>
+
+    <div class="flex items-center gap-2 sm:gap-3">
+      <a class="label text-fg hidden sm:inline" data-cursor="link" id="resume-link"
+        download="Okwoli_Joshua.pdf">
+        Résumé ↓
+      </a>
+      <button class="theme-toggle" id="theme-toggle" type="button" data-cursor="link"></button>
+    </div>
   </header>
 
   <!-- Vertical rail -->
   <div class="chrome rail">
-    <p class="label">Selected Work — Scroll</p>
+    <p class="label">Software Engineer — Portfolio 2026</p>
   </div>
 
-  <!-- Telemetry readout: live pointer coords + local time -->
+  <!-- Runtime readout: real renderer telemetry, not decoration -->
   <div class="chrome hud">
-    <p class="label tnum" id="hud-coords">X 0.000 / Y 0.000</p>
-    <p class="label tnum" id="hud-clock">--:--:--</p>
-    <p class="label" id="hud-section">Index</p>
+    <p class="label tnum" id="hud-fps">60 FPS</p>
+    <span class="label hud-sep">/</span>
+    <p class="label" id="hud-renderer">WebGL 2</p>
+    <span class="label hud-sep">/</span>
+    <p class="label" id="hud-section">Home</p>
   </div>
 
   <!-- Giant outlined title that fades in behind the hovered project row -->
@@ -93,88 +111,116 @@
   <main>
 
     <!-- ── HERO ─────────────────────────────────────────────────────────── -->
-    <section id="index" class="hero shell" data-section="Index">
-      <p class="label anim-hidden" data-reveal>
-        <span class="text-volt">◆</span>&nbsp;&nbsp;Portfolio — Vol. 02
-      </p>
+    <section id="top" class="hero shell" data-section="Home">
+      <p class="note anim-hidden" data-reveal>Software engineer · Mobile, backend &amp; cloud · Open to work</p>
 
-      <h1 class="display display-xl mt-6">
-        <!-- Each line is split into chars by Anime.js and revealed on a stagger -->
-        <span class="block" data-split>Mobile</span>
-        <span class="block outline-word" data-split data-cursor="link">Experiences</span>
+      <h1 class="display display-xl mt-5">
+        <!-- Name first: a visitor should know whose site this is in one glance.
+             Each line is split into characters and revealed on a stagger. -->
+        <span class="block" data-split>Okwoli</span>
+        <span class="block outline-word" data-split data-cursor="link">Joshua</span>
       </h1>
 
-      <div class="mt-10 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+      <div class="mt-9 flex flex-col gap-9 lg:flex-row lg:items-end lg:justify-between">
         <p class="lede anim-hidden" data-reveal>
-          I'm <span class="text-paper">Okwoli Joshua</span> — a Flutter developer building
-          cross-platform products with Firebase, realtime data and a bias for
-          motion, performance and detail.
+          I build products end to end — <span class="text-fg">Flutter</span> on the client,
+          <span class="text-fg">Python, Node and Django</span> behind it,
+          <span class="text-fg">Google Cloud and Firebase</span> underneath. Realtime data,
+          offline-first flows, auth and payments, shipped and maintained.
         </p>
-        <a href="#work" class="label label-accent anim-hidden shrink-0" data-reveal data-cursor="link">
-          Selected Work ↓
-        </a>
+
+        <div class="flex flex-wrap items-center gap-3 anim-hidden" data-reveal>
+          <a href="#work" class="btn btn-solid" data-cursor="link">View work</a>
+          <a class="btn btn-ghost" data-cursor="link" id="resume-btn" download="Okwoli_Joshua.pdf">
+            Download résumé
+          </a>
+        </div>
       </div>
 
-      <div class="hero-meta mt-14">
+      <div class="hero-meta mt-12">
         <div class="anim-hidden" data-reveal>
           <p class="label">Role</p>
-          <p class="mt-1 text-sm">Flutter Developer</p>
+          <p class="mt-1.5 text-sm">Software Engineer</p>
         </div>
         <div class="anim-hidden" data-reveal>
           <p class="label">Focus</p>
-          <p class="mt-1 text-sm">Cross-platform / Realtime</p>
+          <p class="mt-1.5 text-sm">Mobile · Backend · Cloud</p>
         </div>
         <div class="anim-hidden" data-reveal>
           <p class="label">Based</p>
-          <p class="mt-1 text-sm">Nigeria — WAT</p>
+          <p class="mt-1.5 text-sm">Nigeria — WAT</p>
         </div>
         <div class="anim-hidden" data-reveal>
-          <p class="label">Status</p>
-          <p class="mt-1 text-sm">
+          <p class="label">Availability</p>
+          <p class="mt-1.5 text-sm">
             <span class="inline-block size-2 translate-y-[1px] rounded-full bg-mint"></span>
             Open to work
           </p>
         </div>
       </div>
+
+      <a href="#work" class="scroll-hint label mt-14 anim-hidden" data-reveal data-cursor="link">
+        <span aria-hidden="true"></span> Scroll to see the work
+      </a>
     </section>
 
     <!-- ── WORK ─────────────────────────────────────────────────────────── -->
     <section id="work" class="section shell" data-section="Work">
       <div class="section-head">
-        <h2 class="display display-md">Selected<br />Work</h2>
-        <p class="label">04 Projects — 2024/25</p>
+        <div>
+          <p class="label label-accent">01 — Selected Work</p>
+          <h2 class="display display-md mt-3">Shipped<br />Projects</h2>
+        </div>
+        <p class="note max-w-xs">Four production apps, client through to cloud. Click any row to watch a demo.</p>
       </div>
 
       <!-- Rows are rendered from src/data/site.js -->
       <div class="work-list mt-2" id="work-list"></div>
     </section>
 
-    <!-- ── STACK MARQUEE ────────────────────────────────────────────────── -->
-    <div class="marquee" id="marquee" aria-label="Technology stack"></div>
+    <!-- ── STACK ────────────────────────────────────────────────────────── -->
+    <section id="stack" class="section shell" data-section="Stack">
+      <div class="section-head">
+        <div>
+          <p class="label label-accent">02 — Stack</p>
+          <h2 class="display display-md mt-3">Tools I<br />Reach For</h2>
+        </div>
+        <p class="note max-w-xs">Grouped by what they actually do, not by logo count.</p>
+      </div>
+
+      <!-- Groups are rendered from src/data/site.js -->
+      <div class="stack-grid mt-12" id="stack-grid"></div>
+    </section>
+
+    <div class="marquee" id="marquee" aria-hidden="true"></div>
 
     <!-- ── ABOUT ────────────────────────────────────────────────────────── -->
     <section id="about" class="section shell" data-section="About">
       <div class="section-head">
-        <h2 class="display display-md">About</h2>
-        <p class="label">01 — Profile</p>
+        <div>
+          <p class="label label-accent">03 — About</p>
+          <h2 class="display display-md mt-3">Profile</h2>
+        </div>
+        <p class="note max-w-xs">Architecture through to release.</p>
       </div>
 
       <div class="about-grid mt-14">
         <div>
-          <p class="display display-lg anim-hidden" data-reveal style="font-size:clamp(1.6rem,3.6vw,3rem)">
-            I translate ideas into products people keep on their home screen.
+          <p class="display anim-hidden" data-reveal
+            style="font-size:clamp(1.5rem,3.2vw,2.7rem);line-height:1.05">
+            I turn ideas into systems people actually keep using.
           </p>
 
-          <div class="mt-8 max-w-[52ch] space-y-5 text-paper-dim">
+          <div class="mt-8 max-w-[54ch] space-y-5 text-fg-dim">
             <p class="anim-hidden" data-reveal>
-              Working across Flutter, Firebase and scalable backends, I lead implementation
-              from architecture through to release — realtime data, offline-first flows,
-              auth and payments.
+              I work across the whole stack — client, service and infrastructure — and lead
+              implementation from architecture through to release. Cross-platform apps in
+              Flutter, APIs in Python and Node, hosted on Google Cloud and Firebase.
             </p>
             <p class="anim-hidden" data-reveal>
               I care about the invisible parts: state management that stays legible at
-              scale, motion that communicates rather than decorates, and builds that ship
-              on time.
+              scale, data models that survive their second year, motion that communicates
+              rather than decorates, and builds that ship on time.
             </p>
           </div>
 
@@ -183,13 +229,15 @@
               <p class="stat-value" data-count="4" data-pad="2">04</p>
               <p class="label mt-2">Shipped projects</p>
             </div>
+            <!-- Count is rewritten from stack.length at runtime, so it can't
+                 drift out of step with the Stack section. -->
             <div class="stat anim-hidden" data-reveal>
-              <p class="stat-value" data-count="13" data-suffix="+">13+</p>
+              <p class="stat-value" id="stat-tech" data-count="15" data-suffix="+">15+</p>
               <p class="label mt-2">Technologies</p>
             </div>
             <div class="stat anim-hidden" data-reveal>
-              <p class="stat-value" data-count="100" data-suffix="%">100%</p>
-              <p class="label mt-2">Cross-platform</p>
+              <p class="stat-value" data-count="3" data-pad="2">03</p>
+              <p class="label mt-2">Layers of the stack</p>
             </div>
             <div class="stat anim-hidden" data-reveal>
               <p class="stat-value">∞</p>
@@ -198,7 +246,6 @@
           </div>
         </div>
 
-        <!-- Portrait, de-saturated until hover -->
         <figure class="anim-hidden" data-reveal>
           <div class="overflow-hidden border border-[var(--line)]">
             <img id="portrait" alt="Okwoli Joshua"
@@ -206,8 +253,8 @@
               data-cursor="link" />
           </div>
           <figcaption class="label mt-3 flex justify-between">
-            <span>Fig. 01 — Okwoli Joshua</span>
-            <span>Lagos / Remote</span>
+            <span>Okwoli Joshua</span>
+            <span>Remote</span>
           </figcaption>
         </figure>
       </div>
@@ -216,24 +263,27 @@
     <!-- ── CONTACT ──────────────────────────────────────────────────────── -->
     <section id="contact" class="section shell" data-section="Contact">
       <div class="section-head">
-        <h2 class="display display-md">Let's<br />Build</h2>
-        <p class="label">Available — 2025/26</p>
+        <div>
+          <p class="label label-accent">04 — Contact</p>
+          <h2 class="display display-md mt-3">Let's<br />Build</h2>
+        </div>
+        <p class="note max-w-xs">Open to roles and freelance work.</p>
       </div>
 
       <a href="mailto:okwjosh123@gmail.com" class="mega-link display display-lg mt-14 block anim-hidden"
-        data-reveal data-cursor="mail">
+        data-reveal data-cursor="link" data-cursor-label="Email">
         <span class="swap swap-out">okwjosh123@gmail.com</span>
         <span class="swap swap-in">Say hello →</span>
       </a>
 
       <!-- Socials are rendered from src/data/site.js -->
-      <div class="social-row mt-16 border-t border-[var(--line)] pt-8" id="socials"></div>
+      <div class="social-row mt-16 border-t border-[var(--line)]" id="socials"></div>
     </section>
 
     <footer class="shell flex flex-wrap items-center justify-between gap-4 pb-10">
-      <p class="label">© 2025 Okwoli Joshua</p>
-      <p class="label">Three.js · Anime.js · Tailwind</p>
-      <a href="#index" class="label label-accent" data-cursor="link">Back to top ↑</a>
+      <p class="label">© 2026 Okwoli Joshua</p>
+      <p class="label">Built with Three.js · Anime.js · Tailwind · Vite</p>
+      <a href="#top" class="label label-accent" data-cursor="link">Back to top ↑</a>
     </footer>
   </main>
 
@@ -242,17 +292,24 @@
        ═══════════════════════════════════════════════════════════════════ -->
   <div class="demo" id="demo" role="dialog" aria-modal="true" aria-labelledby="demo-title" data-open="false">
     <div class="demo-panel" id="demo-panel">
-      <div class="flex items-center justify-between gap-4 border-b border-[var(--line)] p-5">
+      <div class="flex items-start justify-between gap-4 border-b border-[var(--line)] p-5">
         <div>
-          <h3 class="display display-md" id="demo-title" style="font-size:clamp(1.2rem,2.4vw,1.9rem)"></h3>
-          <p class="label mt-1" id="demo-meta"></p>
+          <h3 class="display display-md" id="demo-title" style="font-size:clamp(1.2rem,2.4vw,1.8rem)"></h3>
+          <p class="label mt-2" id="demo-meta"></p>
         </div>
-        <button class="label text-paper" id="demo-close" data-cursor="close" aria-label="Close demo">
+        <button class="label text-fg shrink-0" id="demo-close" data-cursor="link" data-cursor-label="Close"
+          aria-label="Close demo">
           Close ✕
         </button>
       </div>
-      <iframe class="demo-frame" id="demo-frame" title="Project demo" allow="autoplay; fullscreen; picture-in-picture"
-        allowfullscreen></iframe>
+
+      <iframe class="demo-frame" id="demo-frame" title="Project demo"
+        allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+
+      <div class="border-t border-[var(--line)] p-5">
+        <p class="label">Implementation notes</p>
+        <ul class="demo-highlights mt-3 space-y-2" id="demo-highlights"></ul>
+      </div>
     </div>
   </div>
 

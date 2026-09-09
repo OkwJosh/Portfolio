@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en" data-preview="on">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Content Studio</title>
+  <!-- Not a page for search engines. It is reachable, but it holds nothing
+       until a token is supplied, and it should never appear in results. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300..700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/studio/studio.css" />
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">Content Studio</span>
+      <span class="brand-sub" id="brand-sub">loading…</span>
+    </div>
+
+    <div class="topbar-actions">
+      <span class="save-state" id="save-state" data-state="clean">Saved</span>
+      <button type="button" class="btn btn-quiet" id="toggle-preview" title="Show or hide the preview">
+        Preview
+      </button>
+      <button type="button" class="btn btn-quiet" id="btn-revert" title="Discard unsaved changes">
+        Revert
+      </button>
+      <button type="button" class="btn btn-solid" id="btn-save" title="Save (Ctrl+S)">Save</button>
+      <button type="button" class="btn btn-accent" id="btn-publish">Publish</button>
+      <button type="button" class="btn btn-quiet" id="btn-signout" hidden title="Forget this token">
+        Sign out
+      </button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="rail" id="rail" aria-label="Content sections"></nav>
+    <main class="editor" id="editor" tabindex="-1"></main>
+
+    <aside class="preview" id="preview">
+      <div class="preview-bar">
+        <span class="preview-label" id="preview-label">Live preview</span>
+        <div class="preview-tools">
+          <button type="button" class="chip" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" class="chip" data-viewport="phone" aria-pressed="false">Phone</button>
+          <button type="button" class="chip" id="preview-reload">Reload</button>
+          <a class="chip" id="preview-open" href="#" target="_blank" rel="noreferrer">Open ↗</a>
+        </div>
+      </div>
+      <div class="preview-stage" id="preview-stage">
+        <iframe id="preview-frame" title="Preview of the portfolio" src="about:blank"></iframe>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Sign-in, hosted mode only -->
+  <dialog class="modal" id="auth-modal">
+    <div class="modal-head">
+      <h2>Connect to GitHub</h2>
+    </div>
+    <div class="auth-body">
+      <p class="publish-intro">
+        This editor saves straight to your repository, and the push rebuilds and redeploys the
+        site. It needs a GitHub token to do that.
+      </p>
+
+      <ol class="auth-steps">
+        <li>
+          Open
+          <a href="https://github.com/settings/personal-access-tokens/new" target="_blank"
+            rel="noreferrer">github.com → fine-grained tokens ↗</a>
+        </li>
+        <li>Resource owner: <strong>you</strong>. Repository access: <strong>only</strong>
+          <code id="auth-repo">OkwJosh/Portfolio</code></li>
+        <li>Permissions → Repository → <strong>Contents: Read and write</strong>, and
+          <strong>Actions: Read-only</strong> (so this page can show build progress)</li>
+        <li>Set an expiry you're comfortable with, generate, and paste it below</li>
+      </ol>
+
+      <div class="field">
+        <span class="field-label">Token</span>
+        <input type="password" id="auth-token" placeholder="github_pat_…" autocomplete="off"
+          spellcheck="false" />
+        <p class="field-hint">
+          Stored in this browser only, and sent only to api.github.com. Anyone who can unlock this
+          device can edit the site — sign out on a shared one.
+        </p>
+      </div>
+
+      <details class="auth-advanced">
+        <summary>Repository settings</summary>
+        <div class="row">
+          <div class="field">
+            <span class="field-label">Owner</span>
+            <input type="text" id="auth-owner" spellcheck="false" />
+          </div>
+          <div class="field">
+            <span class="field-label">Repo</span>
+            <input type="text" id="auth-repo-input" spellcheck="false" />
+          </div>
+          <div class="field">
+            <span class="field-label">Branch</span>
+            <input type="text" id="auth-branch" spellcheck="false" />
+          </div>
+        </div>
+      </details>
+
+      <p class="auth-error" id="auth-error" hidden></p>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-accent" id="auth-go">Connect</button>
+    </div>
+  </dialog>
+
+  <!-- Asset picker -->
+  <dialog class="modal" id="asset-modal">
+    <form method="dialog" class="modal-head">
+      <h2 id="asset-modal-title">Choose an image</h2>
+      <button class="icon-btn" value="cancel" aria-label="Close">✕</button>
+    </form>
+    <div class="dropzone" id="dropzone">
+      <strong>Drop a file here</strong>
+      <span>or</span>
+      <label class="btn btn-quiet">
+        Browse…
+        <input type="file" id="file-input" accept="image/*,.pdf" hidden />
+      </label>
+      <p class="dropzone-note">PNG, JPG, WEBP, SVG or PDF · saved into <code>src/assets</code></p>
+    </div>
+    <div class="asset-grid" id="asset-grid"></div>
+  </dialog>
+
+  <!-- Publish console -->
+  <dialog class="modal modal-wide" id="publish-modal">
+    <form method="dialog" class="modal-head">
+      <h2>Publish to live</h2>
+      <button class="icon-btn" value="cancel" aria-label="Close">✕</button>
+    </form>
+    <div class="publish-body">
+      <p class="publish-intro" id="publish-intro"></p>
+      <ol class="publish-steps" id="publish-steps"></ol>
+      <pre class="console" id="publish-log" aria-live="polite"></pre>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-quiet" id="publish-close">Close</button>
+      <button type="button" class="btn btn-accent" id="publish-go">Build &amp; deploy</button>
+    </div>
+  </dialog>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script type="module" src="/studio/app.js"></script>
+</body>
+
+</html>

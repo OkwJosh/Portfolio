@@ -47,8 +47,8 @@ export function runPreloader() {
         ease: 'inOut(2)',
         onUpdate: () => {
           count.textContent = pad(progress.value, 3);
-          if (progress.value > 55 && status) status.textContent = 'Building scene';
-          if (progress.value > 88 && status) status.textContent = 'Ready';
+          if (progress.value > 50 && status) status.textContent = 'Compiling shaders';
+          if (progress.value > 85 && status) status.textContent = 'Ready';
         },
       })
       // 2. Progress hairline, running in parallel (negative offset).

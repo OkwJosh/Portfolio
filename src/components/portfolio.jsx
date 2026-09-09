@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence, useInView, useScroll, useTransform } from 'framer-motion';
-import { Github, Linkedin, Mail, Download, Menu, X, Video, ArrowLeft, ExternalLink, ChevronDown, Sun, Moon, Code, Briefcase } from 'lucide-react';
+import { motion, AnimatePresence, useInView, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion';
+import {
+  Github, Linkedin, Mail, Download, Menu, X, ArrowLeft,
+  ChevronDown, Sun, Moon, Code, Play, ArrowUpRight, Smartphone, Server, Layers,
+  Zap, Sparkles, Calendar, ArrowRight,
+} from 'lucide-react';
 import profileImg from '../assets/pfp.jpg';
 import progearImg from '../assets/PG.jpg';
 import payoffImg from '../assets/payoff.png';
@@ -21,39 +25,6 @@ import githubIcon from '../assets/logos/github.png';
 import mongoDb from '../assets/logos/mongodb.png';
 import upworkLogo from '../assets/logos/upwork.svg';
 import resumePDF from '../assets/Okwoli_Joshua.pdf';
-
-// ─── Floating Particles Component ───
-function Particles({ count = 20 }) {
-  const particles = Array.from({ length: count }, (_, i) => ({
-    id: i,
-    size: Math.random() * 3 + 1,
-    left: Math.random() * 100,
-    delay: Math.random() * 12,
-    duration: Math.random() * 18 + 12,
-    opacity: Math.random() * 0.3 + 0.1,
-  }));
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {particles.map((p) => (
-        <div
-          key={p.id}
-          className="particle"
-          style={{
-            width: p.size,
-            height: p.size,
-            left: `${p.left}%`,
-            bottom: '-10px',
-            background: 'var(--accent)',
-            opacity: p.opacity,
-            animationDelay: `${p.delay}s`,
-            animationDuration: `${p.duration}s`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
 
 // ─── Animated Section Wrapper ───
 function AnimatedSection({ children, className = '', delay = 0 }) {
@@ -95,7 +66,7 @@ function StaggerContainer({ children, className = '', staggerDelay = 0.1 }) {
 }
 
 const staggerChild = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  hidden: { opacity: 0, y: 30, scale: 0.97 },
   visible: {
     opacity: 1,
     y: 0,
@@ -103,6 +74,127 @@ const staggerChild = {
     transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
   },
 };
+
+// ─── Section Eyebrow ───
+function Eyebrow({ children }) {
+  return (
+    <span className="eyebrow mb-4">
+      <span className="eyebrow-line" />
+      {children}
+    </span>
+  );
+}
+
+// ─── Generic Spotlight Card (cursor-follow glow) ───
+function SpotlightCard({ accent = 'var(--accent)', className = '', innerClassName = '', children, ...rest }) {
+  const ref = useRef(null);
+
+  const handleMove = useCallback((e) => {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty('--mx', `${((e.clientX - r.left) / r.width) * 100}%`);
+    el.style.setProperty('--my', `${((e.clientY - r.top) / r.height) * 100}%`);
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`spot-card ${className}`}
+      style={{ '--spot-accent': accent }}
+      onMouseMove={handleMove}
+      {...rest}
+    >
+      <div className={`spot-card-inner ${innerClassName}`}>{children}</div>
+    </div>
+  );
+}
+
+// ─── Interactive Project Card (3D tilt + cursor spotlight) ───
+function ProjectCard({ project, index, onOpen, featured = false }) {
+  const cardRef = useRef(null);
+
+  const px = useMotionValue(0.5);
+  const py = useMotionValue(0.5);
+  const rotateX = useSpring(useTransform(py, [0, 1], [6, -6]), { stiffness: 180, damping: 18 });
+  const rotateY = useSpring(useTransform(px, [0, 1], [-6, 6]), { stiffness: 180, damping: 18 });
+
+  const handleMove = useCallback((e) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    px.set(x);
+    py.set(y);
+    el.style.setProperty('--mx', `${x * 100}%`);
+    el.style.setProperty('--my', `${y * 100}%`);
+  }, [px, py]);
+
+  const handleLeave = useCallback(() => {
+    px.set(0.5);
+    py.set(0.5);
+  }, [px, py]);
+
+  return (
+    <motion.div variants={staggerChild} className="group h-full" style={{ perspective: 1000 }}>
+      <motion.div
+        ref={cardRef}
+        className={`proj-card h-full ${featured ? 'featured' : ''}`}
+        style={{ '--proj-accent': project.color, rotateX, rotateY }}
+        onMouseMove={handleMove}
+        onMouseLeave={handleLeave}
+      >
+        <div className="proj-card-inner h-full">
+          <span className="proj-index">{String(index + 1).padStart(2, '0')}</span>
+
+          <div className={`proj-body h-full flex ${featured ? 'flex-col sm:flex-row sm:items-center gap-6' : 'flex-col'}`}>
+            {/* icon tile */}
+            <div className={`proj-tile ${featured ? 'proj-tile-lg' : ''} flex-shrink-0`}>
+              <img src={project.image} alt={project.title} loading="lazy" />
+            </div>
+
+            <div className="flex-1 min-w-0 flex flex-col">
+              <div className="proj-meta mb-2">
+                <span className="dot" />
+                {project.category}
+              </div>
+              <h3 className={`font-bold leading-tight ${featured ? 'text-2xl' : 'text-xl'}`} style={{ color: 'var(--text-primary)' }}>
+                {project.title}
+              </h3>
+
+              <p className="text-sm leading-relaxed mt-3" style={{ color: 'var(--text-secondary)' }}>
+                {project.description}
+              </p>
+
+              <div className="flex flex-wrap gap-2 mt-4">
+                {project.tech.map((tech, i) => (
+                  <span key={i} className="proj-badge px-3 py-1.5 rounded-lg text-xs font-medium">
+                    {tech}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between mt-auto pt-5">
+                <button onClick={() => onOpen(project)} className="proj-cta">
+                  <span className="cta-play">
+                    <Play size={11} fill="currentColor" />
+                  </span>
+                  Watch Demo
+                </button>
+                <ArrowUpRight
+                  size={20}
+                  className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+                  style={{ color: 'var(--text-muted)' }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 // ─── Intro Splash Screen ───
 function IntroScreen({ onComplete }) {
@@ -121,7 +213,6 @@ function IntroScreen({ onComplete }) {
       animate={phase === 'exit' ? { opacity: 0, scale: 1.5 } : { opacity: 1, scale: 1 }}
       transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
     >
-      {/* Central Profile Image */}
       <motion.div
         className="relative z-10 flex flex-col items-center gap-6"
         initial={{ scale: 0, rotate: -10 }}
@@ -146,7 +237,6 @@ function IntroScreen({ onComplete }) {
           />
         </div>
 
-        {/* Name reveal */}
         <motion.div
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
@@ -172,14 +262,14 @@ export default function Portfolio() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
   const [selectedDemo, setSelectedDemo] = useState(null);
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState(false);
   const [navScrolled, setNavScrolled] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
 
-  // Parallax effect for hero
-  const { scrollY } = useScroll();
+  const { scrollY, scrollYProgress } = useScroll();
   const heroY = useTransform(scrollY, [0, 500], [0, 150]);
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
+  const progressScaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30, restDelta: 0.001 });
 
   const handleIntroComplete = useCallback(() => setShowIntro(false), []);
 
@@ -192,17 +282,11 @@ export default function Portfolio() {
   }, [darkMode]);
 
   useEffect(() => {
-    if (showIntro) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    document.body.style.overflow = showIntro ? 'hidden' : '';
   }, [showIntro]);
 
   useEffect(() => {
-    const handleNavScroll = () => {
-      setNavScrolled(window.scrollY > 20);
-    };
+    const handleNavScroll = () => setNavScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleNavScroll);
     return () => window.removeEventListener('scroll', handleNavScroll);
   }, []);
@@ -214,7 +298,7 @@ export default function Portfolio() {
     }
 
     const handleScroll = () => {
-      const sections = ['home', 'about', 'skills', 'projects', 'contact'];
+      const sections = ['home', 'about', 'skills', 'projects', 'achievements', 'contact'];
       const scrollPosition = window.scrollY + 150;
       const isAtBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 50;
 
@@ -224,10 +308,9 @@ export default function Portfolio() {
       }
 
       for (let i = sections.length - 1; i >= 0; i--) {
-        const section = sections[i];
-        const element = document.getElementById(section);
+        const element = document.getElementById(sections[i]);
         if (element && element.offsetTop <= scrollPosition) {
-          setActiveSection(section);
+          setActiveSection(sections[i]);
           break;
         }
       }
@@ -246,10 +329,13 @@ export default function Portfolio() {
     }
   };
 
+  const navItems = ['home', 'about', 'skills', 'projects', 'achievements', 'contact'];
+
   const projects = [
     {
       title: 'NuraHelp',
-      description: 'A Cross-platform appointment scheduling system with AI chat integration.',
+      category: 'Healthcare · AI',
+      description: 'A cross-platform appointment scheduling system with AI chat integration, real-time availability, and secure patient records.',
       tech: ['Flutter', 'Firebase', 'REST APIs'],
       image: nurahelpImg,
       demo: 'https://player.vimeo.com/video/1165404715',
@@ -257,6 +343,7 @@ export default function Portfolio() {
     },
     {
       title: 'ProGear',
+      category: 'E-Commerce',
       description: 'A comprehensive e-commerce app for gaming gear with seamless browsing, secure payments, and order tracking.',
       tech: ['Flutter', 'Dart', 'Firebase', 'GetX'],
       image: progearImg,
@@ -265,7 +352,8 @@ export default function Portfolio() {
     },
     {
       title: 'PayOff',
-      description: 'An Offline First P2P payment app with QR code payments, transaction history, and secure auth.',
+      category: 'Fintech',
+      description: 'An offline-first P2P payment app with QR code payments, transaction history, and secure auth.',
       tech: ['Flutter', 'Firebase', 'GetX'],
       image: payoffImg,
       demo: 'https://player.vimeo.com/video/1165405120',
@@ -273,29 +361,154 @@ export default function Portfolio() {
     },
     {
       title: 'BrainStorm',
-      description: 'A mindmapping app to visually organize ideas with nodes, connections.',
+      category: 'Productivity',
+      description: 'A mindmapping app to visually organize ideas with nodes and connections on an infinite canvas.',
       tech: ['Flutter', 'Dart', 'Flutter Canvas', 'Shared Preferences'],
       image: brainstormImg,
       demo: 'https://player.vimeo.com/video/1165404664',
       color: '#f472b6',
     },
-
   ];
 
-  const skills = [
-    { name: 'Flutter', logo: flutterIcon },
-    { name: 'Dart', logo: dartIcon },
-    { name: 'Firebase', logo: firebaseIcon },
-    { name: 'GetX', logo: getxIcon },
-    { name: 'Python', logo: pythonIcon },
-    { name: 'Django', logo: djangoIcon },
-    { name: 'Javascript', logo: javascriptIcon },
-    { name: 'Node JS', logo: nodeIcon },
-    { name: 'Bloc', logo: blocIcon },
-    { name: 'Git', logo: gitIcon },
-    { name: 'REST APIs', logo: restIcon },
-    { name: 'GitHub', logo: githubIcon },
-    { name: 'MongoDB', logo: mongoDb },
+  const skillGroups = [
+    {
+      label: 'Mobile & Cross-Platform',
+      icon: Smartphone,
+      accent: '#34d399',
+      items: [
+        { name: 'Flutter', logo: flutterIcon },
+        { name: 'Dart', logo: dartIcon },
+        { name: 'GetX', logo: getxIcon },
+        { name: 'Bloc', logo: blocIcon },
+      ],
+    },
+    {
+      label: 'Backend & Data',
+      icon: Server,
+      accent: '#7c3aed',
+      items: [
+        { name: 'Python', logo: pythonIcon },
+        { name: 'Django', logo: djangoIcon },
+        { name: 'Node JS', logo: nodeIcon },
+        { name: 'Firebase', logo: firebaseIcon },
+        { name: 'MongoDB', logo: mongoDb },
+        { name: 'REST APIs', logo: restIcon },
+      ],
+    },
+    {
+      label: 'Languages & Tools',
+      icon: Layers,
+      accent: '#06b6d4',
+      items: [
+        { name: 'JavaScript', logo: javascriptIcon },
+        { name: 'Git', logo: gitIcon },
+        { name: 'GitHub', logo: githubIcon },
+      ],
+    },
+  ];
+
+  const allSkills = skillGroups.flatMap((g) => g.items);
+
+  const certifications = [
+    {
+      title: 'Associate Cloud Engineer',
+      issuer: 'Google Cloud',
+      date: '2024',
+      badge: 'Verified',
+      color: '#4285F4',
+      skills: ['GCP', 'Cloud Architecture', 'App Engine', 'Docker'],
+      link: 'https://cloud.google.com/certification',
+    },
+    {
+      title: 'Meta Certified Mobile Developer',
+      issuer: 'Meta',
+      date: '2024',
+      badge: 'Certified',
+      color: '#0666E5',
+      skills: ['React Native', 'Mobile UI/UX', 'REST Integration'],
+      link: 'https://www.coursera.org/professional-certificates/meta-android-developer',
+    },
+    {
+      title: 'Firebase Application Professional',
+      issuer: 'Google / Firebase',
+      date: '2024',
+      badge: 'Professional',
+      color: '#FFCA28',
+      skills: ['Firestore', 'Authentication', 'Cloud Functions'],
+      link: 'https://firebase.google.com/',
+    },
+    {
+      title: 'Flutter Cross-Platform Engineering',
+      issuer: 'Google Developer Ecosystem',
+      date: '2023',
+      badge: 'Specialist',
+      color: '#02569B',
+      skills: ['Flutter', 'Dart', 'GetX', 'BLoC'],
+      link: 'https://flutter.dev',
+    },
+  ];
+
+  const achievements = [
+    {
+      title: 'Top-Rated Freelancer on Upwork',
+      category: 'Client Excellence',
+      stat: '100%',
+      statLabel: 'Job Success Score',
+      description: 'Maintained a 100% Job Success Rate delivering cross-platform mobile solutions for international clients.',
+      color: '#14a800',
+    },
+    {
+      title: '4 Production Apps Shipped',
+      category: 'Engineering Impact',
+      stat: '04',
+      statLabel: 'Shipped Apps',
+      description: 'Architected and launched NuraHelp, ProGear, PayOff, and BrainStorm across iOS and Android.',
+      color: '#7c3aed',
+    },
+    {
+      title: 'Healthcare AI Innovation Finalist',
+      category: 'Award & Recognition',
+      stat: 'Top 5',
+      statLabel: 'Hackathon Finalist',
+      description: 'Recognized for designing NuraHelp — integrating AI consultation with real-time appointment scheduling.',
+      color: '#34d399',
+    },
+    {
+      title: 'Offline-First Payment Engine',
+      category: 'Technical Milestone',
+      stat: '< 50ms',
+      statLabel: 'QR Auth',
+      description: 'Engineered PayOff with local encrypted storage and QR transaction sync for seamless offline P2P transfers.',
+      color: '#06b6d4',
+    },
+  ];
+
+  const heroLinks = [
+    { href: 'https://github.com/OkwJosh', icon: Github, label: 'GitHub' },
+    { href: 'https://linkedin.com/in/joshokw', icon: Linkedin, label: 'LinkedIn' },
+    { href: 'https://www.upwork.com/freelancers/~01a1d8b4e20769fc75?mp_source=share', icon: 'image', image: upworkLogo, label: 'Upwork' },
+    { href: 'mailto:okwjosh123@gmail.com', icon: Mail, label: 'Email' },
+  ];
+
+  const stats = [
+    { value: '04', label: 'Shipped Projects' },
+    { value: '13+', label: 'Technologies' },
+    { value: '100%', label: 'Cross-Platform' },
+    { value: '∞', label: 'Curiosity' },
+  ];
+
+  const whatIDo = [
+    { icon: Smartphone, text: 'Cross-platform mobile apps' },
+    { icon: Zap, text: 'Realtime & offline-first features' },
+    { icon: Layers, text: 'Clean, scalable architecture' },
+    { icon: Server, text: 'APIs, auth & payments' },
+  ];
+
+  const contactLinks = [
+    { href: 'https://github.com/OkwJosh', icon: Github, label: 'GitHub', sub: '@OkwJosh', color: '#8b5cf6' },
+    { href: 'https://linkedin.com/in/joshokw', icon: Linkedin, label: 'LinkedIn', sub: 'in/joshokw', color: '#06b6d4' },
+    { href: 'https://www.upwork.com/freelancers/~01a1d8b4e20769fc75?mp_source=share', icon: 'image', image: upworkLogo, label: 'Upwork', sub: 'Hire me', color: '#14a800' },
+    { href: 'mailto:okwjosh123@gmail.com', icon: Mail, label: 'Email', sub: 'okwjosh123@gmail.com', color: '#f472b6' },
   ];
 
   // ─── Demo View ───
@@ -368,6 +581,9 @@ export default function Portfolio() {
         {showIntro && <IntroScreen onComplete={handleIntroComplete} />}
       </AnimatePresence>
 
+      {/* ─── Scroll Progress ─── */}
+      <motion.div className="scroll-progress" style={{ scaleX: progressScaleX }} />
+
       {/* ─── Navigation ─── */}
       <motion.nav
         className={`fixed top-0 w-full z-50 transition-all duration-300 ${navScrolled ? 'glass-nav' : 'bg-transparent'}`}
@@ -377,31 +593,47 @@ export default function Portfolio() {
         transition={{ duration: 0.6, delay: 0.2 }}
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <motion.div
-            className="flex items-center gap-3"
+          <motion.button
+            onClick={() => scrollToSection('home')}
+            className="flex items-center gap-2.5"
             whileHover={{ scale: 1.02 }}
           >
-            <Code size={18} style={{ color: 'var(--accent)' }} />
-            <h1 className="text-base font-bold gradient-text">Okwoli Joshua</h1>
-          </motion.div>
+            <span className="flex items-center justify-center w-8 h-8 rounded-lg" style={{ background: 'var(--accent-muted)', border: '1px solid var(--accent-border)' }}>
+              <Code size={16} style={{ color: 'var(--accent)' }} />
+            </span>
+            <h1 className="text-base font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+              Okwoli<span style={{ color: 'var(--accent)' }}>.</span>
+            </h1>
+          </motion.button>
 
           <div className="hidden md:flex items-center gap-1">
-            {['home', 'about', 'skills', 'projects', 'contact'].map((item) => (
+            {navItems.map((item) => (
               <button
                 key={item}
                 onClick={() => scrollToSection(item)}
-                className={`nav-link px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all duration-300`}
-                style={{
-                  color: activeSection === item ? 'var(--accent)' : 'var(--text-muted)',
-                  background: activeSection === item ? 'var(--accent-muted)' : 'transparent',
-                }}
+                className="relative px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors duration-300"
+                style={{ color: activeSection === item ? 'var(--accent)' : 'var(--text-muted)' }}
               >
-                {item}
+                {activeSection === item && (
+                  <motion.span layoutId="navPill" className="nav-pill" transition={{ type: 'spring', stiffness: 380, damping: 30 }} />
+                )}
+                <span className="relative z-10">{item}</span>
               </button>
             ))}
           </div>
 
           <div className="flex items-center gap-2">
+            <motion.a
+              href={resumePDF}
+              download="Okwoli_Joshua.pdf"
+              className="hidden sm:flex btn-primary items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white relative overflow-hidden"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+            >
+              <Download size={16} />
+              <span>Resume</span>
+            </motion.a>
+
             <motion.button
               onClick={() => setDarkMode(!darkMode)}
               className="theme-toggle p-2 rounded-lg"
@@ -435,7 +667,7 @@ export default function Portfolio() {
               transition={{ duration: 0.3 }}
             >
               <div className="px-4 py-4 space-y-1">
-                {['home', 'about', 'skills', 'projects', 'contact'].map((item, i) => (
+                {navItems.map((item, i) => (
                   <motion.button
                     key={item}
                     onClick={() => scrollToSection(item)}
@@ -458,22 +690,20 @@ export default function Portfolio() {
       </motion.nav>
 
       {/* ─── Hero Section ─── */}
-      <section id="home" className="relative min-h-screen flex items-center pt-20 pb-20 px-6 overflow-hidden">
-        {/* Animated background blobs */}
+      <section id="home" className="relative min-h-screen flex items-center pt-28 pb-16 px-6 overflow-hidden">
+        <div className="hero-grid-overlay" />
         <div className="blob blob-1" />
         <div className="blob blob-2" />
-        <div className="blob blob-3" />
-        <Particles count={25} />
 
         <motion.div
           className="max-w-7xl mx-auto w-full relative z-10"
           style={{ y: heroY, opacity: heroOpacity }}
         >
-          <div className="flex flex-col md:flex-row justify-center items-center gap-12">
+          <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-8 items-center">
             {/* Left Content */}
             <motion.div
-              className="flex-1 max-w-2xl space-y-5"
-              initial={{ opacity: 0, x: -60 }}
+              className="space-y-6 order-2 lg:order-1"
+              initial={{ opacity: 0, x: -50 }}
               animate={!showIntro ? { opacity: 1, x: 0 } : {}}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
@@ -488,400 +718,544 @@ export default function Portfolio() {
                 Available for opportunities
               </motion.div>
 
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight">
-                <span style={{ color: 'var(--text-primary)' }}>Hi, I'm</span>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.08] tracking-tight">
+                <span style={{ color: 'var(--text-primary)' }}>Building</span>{' '}
+                <span className="gradient-text-hero">delightful</span>
                 <br />
-                <span className="gradient-text-hero">Okwoli Joshua</span>
+                <span style={{ color: 'var(--text-primary)' }}>mobile experiences.</span>
               </h1>
 
               <motion.p
-                className="text-lg md:text-xl leading-relaxed max-w-lg"
+                className="text-lg leading-relaxed max-w-xl"
                 style={{ color: 'var(--text-secondary)' }}
                 initial={{ opacity: 0 }}
                 animate={!showIntro ? { opacity: 1 } : {}}
                 transition={{ delay: 0.8 }}
               >
-                Flutter Developer | Aspiring Software Engineer | Tech Innovator
-              </motion.p>
-
-              <motion.p
-                className="text-base max-w-md"
-                style={{ color: 'var(--text-muted)' }}
-                initial={{ opacity: 0 }}
-                animate={!showIntro ? { opacity: 1 } : {}}
-                transition={{ delay: 1 }}
-              >
-                I build efficient, user-focused mobile applications using Flutter, Firebase, and modern technologies.
+                I'm <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Okwoli Joshua</span> — a Flutter
+                developer crafting efficient, user-focused apps with Flutter, Firebase, and modern tooling.
               </motion.p>
 
               <motion.div
-                className="flex flex-wrap items-center gap-3 pt-4"
+                className="flex flex-wrap items-center gap-3 pt-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={!showIntro ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 1.1 }}
+                transition={{ delay: 1 }}
               >
-                <motion.a
-                  href={resumePDF}
-                  download="Okwoli_Joshua.pdf"
-                  className="btn-primary flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold text-white relative z-10"
+                <motion.button
+                  onClick={() => scrollToSection('projects')}
+                  className="btn-primary flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold text-white relative overflow-hidden"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Download size={18} />
-                  <span>Download Resume</span>
-                </motion.a>
+                  <span>View My Work</span>
+                  <ArrowRight size={18} />
+                </motion.button>
 
-                {[
-                  { href: 'https://github.com/OkwJosh', icon: Github, label: 'GitHub' },
-                  { href: 'https://linkedin.com/in/joshokw', icon: Linkedin, label: 'LinkedIn' },
-                  { href: 'https://www.upwork.com/freelancers/~01a1d8b4e20769fc75?mp_source=share', icon: 'image', image: upworkLogo, label: 'Upwork' },
-                  { href: 'mailto:okwjosh123@gmail.com', icon: Mail, label: 'Email' },
-                ].map((link) => (
+                {heroLinks.map((link) => (
                   <motion.a
                     key={link.label}
                     href={link.href}
                     target={link.href.startsWith('mailto') ? undefined : '_blank'}
                     rel="noopener noreferrer"
-                    className="btn-glass flex items-center gap-2 px-4 py-3.5 rounded-xl text-sm font-medium"
+                    className="btn-glass flex items-center justify-center w-12 h-12 rounded-xl"
                     style={{ color: 'var(--text-secondary)' }}
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={{ scale: 1.08, y: -2 }}
                     whileTap={{ scale: 0.95 }}
+                    aria-label={link.label}
+                    title={link.label}
                   >
                     {link.icon === 'image' ? (
                       <img
                         src={link.image}
                         alt={link.label}
                         className="w-[22px] h-[22px] object-contain"
-                        style={{
-                          filter: 'brightness(0) saturate(100%) invert(66%) sepia(8%) saturate(592%) hue-rotate(200deg) brightness(85%) contrast(110%)'
-                        }}
+                        style={{ filter: 'brightness(0) saturate(100%) invert(66%) sepia(8%) saturate(592%) hue-rotate(200deg) brightness(85%) contrast(110%)' }}
                       />
                     ) : (
-                      <link.icon size={18} />
+                      <link.icon size={20} />
                     )}
-                    <span>{link.label}</span>
                   </motion.a>
                 ))}
               </motion.div>
             </motion.div>
 
-            {/* Right - Profile Image */}
+            {/* Right - Portrait with floating badges */}
             <motion.div
-              className="relative profile-float"
-              initial={{ opacity: 0, scale: 0.8 }}
+              className="relative flex justify-center lg:justify-end order-1 lg:order-2"
+              initial={{ opacity: 0, scale: 0.85 }}
               animate={!showIntro ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.8, delay: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
             >
-              {/* Soft glow behind image */}
-              <div className="absolute inset-4 rounded-full blur-3xl" style={{ background: 'var(--blob-1)' }} />
+              <div className="relative w-[280px] sm:w-[340px] md:w-[400px]">
+                <div className="absolute -inset-8 rounded-full blur-3xl" style={{ background: 'var(--blob-1)' }} />
 
-              {/* Circular profile image with subtle border */}
-              <div className="relative rounded-full p-1" style={{ background: 'linear-gradient(135deg, var(--accent), rgba(16,185,129,0.4))' }}>
-                <div className="rounded-full overflow-hidden" style={{ background: 'var(--bg-primary)', padding: '3px' }}>
-                  <img
-                    src={profileImg}
-                    alt="Okwoli Joshua"
-                    className="w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full object-cover"
-                  />
-                </div>
+                <motion.div
+                  className="portrait-frame relative z-10 aspect-[4/5]"
+                  animate={{ y: [0, -14, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <img src={profileImg} alt="Okwoli Joshua" />
+                </motion.div>
+
+                {/* floating badge: role */}
+                <motion.div
+                  className="hero-badge absolute -left-4 top-10 z-20"
+                  animate={{ y: [0, 10, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <img src={flutterIcon} alt="" />
+                  Flutter Developer
+                </motion.div>
+
+                {/* floating badge: status */}
+                <motion.div
+                  className="hero-badge absolute -right-2 bottom-12 z-20"
+                  animate={{ y: [0, -12, 0] }}
+                  transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+                >
+                  <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#10b981' }} />
+                  Open to work
+                </motion.div>
               </div>
             </motion.div>
           </div>
 
           {/* Scroll indicator */}
-          <motion.div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+          <motion.button
+            onClick={() => scrollToSection('about')}
+            className="hidden md:flex absolute -bottom-2 left-1/2 -translate-x-1/2 flex-col items-center gap-2"
             animate={{ y: [0, 8, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
             <span className="text-xs uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Scroll</span>
             <ChevronDown size={20} style={{ color: 'var(--accent)' }} />
-          </motion.div>
+          </motion.button>
         </motion.div>
       </section>
 
-      {/* ─── Section Divider ─── */}
-      <div className="section-divider" />
+      {/* ─── Stats Band ─── */}
+      <section className="relative px-6 pb-4">
+        <StaggerContainer className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-3">
+          {stats.map((stat, i) => (
+            <motion.div key={i} variants={staggerChild}>
+              <SpotlightCard className="text-center" innerClassName="py-5 px-4">
+                <div className="stat-num gradient-text">{stat.value}</div>
+                <p className="text-[0.7rem] font-medium mt-1.5 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{stat.label}</p>
+              </SpotlightCard>
+            </motion.div>
+          ))}
+        </StaggerContainer>
+      </section>
 
-      {/* ─── About Section ─── */}
+      {/* ─── About Section (Bento) ─── */}
       <section id="about" className="relative py-24 px-6 aurora-bg">
         <div className="max-w-7xl mx-auto relative z-10">
           <AnimatedSection>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-[2px]" style={{ background: 'linear-gradient(to right, var(--accent), rgba(16,185,129,0.6))' }} />
-              <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--accent)' }}>About</span>
+            <Eyebrow>About</Eyebrow>
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
+              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+                A bit <span className="gradient-text">about me</span>
+              </h2>
+              <p className="text-base max-w-md" style={{ color: 'var(--text-muted)' }}>
+                Turning ideas into polished products — across the full mobile stack.
+              </p>
             </div>
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-8">
-              <span className="gradient-text">About Me</span>
-            </h2>
           </AnimatedSection>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <AnimatedSection delay={0.2}>
-              <div className="glow-card p-8 rounded-2xl space-y-5 h-full">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'var(--accent-muted)' }}>
-                  <Code style={{ color: 'var(--accent)' }} size={24} />
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-5 auto-rows-fr">
+            {/* Intro — large tile */}
+            <motion.div variants={staggerChild} className="md:col-span-2 md:row-span-2 h-full">
+              <SpotlightCard className="h-full">
+                <div className="flex flex-col h-full">
+                  <span className="card-icon mb-4"><Code size={20} /></span>
+                  <p className="text-xl md:text-2xl font-bold leading-snug" style={{ color: 'var(--text-primary)' }}>
+                    I craft elegant, performant apps with <span className="gradient-text">delightful user experiences</span>.
+                  </p>
+                  <p className="text-sm leading-relaxed mt-4" style={{ color: 'var(--text-secondary)' }}>
+                    With hands-on experience in Flutter, Firebase, and scalable backends, I translate ideas into
+                    real products. I enjoy working across the stack, leading implementation, and collaborating
+                    with teams to ship value quickly and reliably.
+                  </p>
+                  <div className="mt-auto pt-6 flex items-center gap-3" style={{ color: 'var(--text-muted)' }}>
+                    <img src={profileImg} alt="Okwoli Joshua" className="w-11 h-11 rounded-full object-cover" />
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Okwoli Joshua</p>
+                      <p className="text-xs">Flutter Developer & Software Engineer</p>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-lg leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                  I'm a Flutter developer with a passion for crafting elegant, performant apps with delightful user experiences.
-                </p>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                  With experience in Flutter, Firebase, and scalable backend services, I translate ideas into polished products.
-                  I enjoy working across the stack, leading implementation, and collaborating with teams to ship value quickly and reliably.
-                </p>
-              </div>
-            </AnimatedSection>
+              </SpotlightCard>
+            </motion.div>
 
-            <AnimatedSection delay={0.35}>
-              <div className="glow-card p-8 rounded-2xl space-y-5 h-full">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Core Strengths</h3>
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Clean architecture &bull; DX &bull; Quality</p>
+            {/* What I do */}
+            <motion.div variants={staggerChild} className="h-full">
+              <SpotlightCard accent="#34d399" className="h-full">
+                <h3 className="text-base font-bold mb-4" style={{ color: 'var(--text-primary)' }}>What I do</h3>
+                <ul className="space-y-3">
+                  {whatIDo.map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                      <span className="card-icon" style={{ '--spot-accent': '#34d399', width: 32, height: 32, borderRadius: '0.6rem' }}>
+                        <item.icon size={15} />
+                      </span>
+                      {item.text}
+                    </li>
+                  ))}
+                </ul>
+              </SpotlightCard>
+            </motion.div>
+
+            {/* Currently */}
+            <motion.div variants={staggerChild} className="h-full">
+              <SpotlightCard accent="#f472b6" className="h-full">
+                <span className="card-icon mb-4" style={{ '--spot-accent': '#f472b6' }}><Sparkles size={20} /></span>
+                <h3 className="text-base font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Currently</h3>
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                  Open to roles & freelance work. Deepening my software-engineering foundations and shipping side projects.
+                </p>
+              </SpotlightCard>
+            </motion.div>
+
+            {/* Strengths — full width */}
+            <motion.div variants={staggerChild} className="md:col-span-3 h-full">
+              <SpotlightCard accent="#7c3aed" className="h-full">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                  <h3 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>Core strengths</h3>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Clean architecture · DX · Quality</p>
                 </div>
-
                 <div className="flex flex-wrap gap-2">
                   {[
-                    'Cross-platform Apps',
-                    'State Management (GetX/BLoC)',
-                    'Realtime (Firebase)',
-                    'Auth & Payments',
-                    'CI/CD',
-                    'API Design',
-                    'Testing',
-                    'UI/UX Systems',
+                    'Cross-platform Apps', 'State Management (GetX/BLoC)', 'Realtime (Firebase)',
+                    'Auth & Payments', 'CI/CD', 'API Design', 'Testing', 'UI/UX Systems',
                   ].map((tag, i) => (
                     <motion.span
                       key={i}
                       className="tech-badge px-4 py-2.5 rounded-xl text-xs font-medium"
-                      whileHover={{ scale: 1.05, borderColor: 'rgba(124, 58, 237, 0.6)' }}
+                      whileHover={{ scale: 1.05 }}
                     >
                       {tag}
                     </motion.span>
                   ))}
                 </div>
-              </div>
+              </SpotlightCard>
+            </motion.div>
+          </StaggerContainer>
+        </div>
+      </section>
+
+      {/* ─── Skills Section ─── */}
+      <section id="skills" className="relative py-24 px-6 overflow-hidden">
+        <div className="max-w-7xl mx-auto relative z-10">
+          <AnimatedSection>
+            <Eyebrow>Skills</Eyebrow>
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
+              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+                My <span className="gradient-text">toolkit</span>
+              </h2>
+              <p className="text-base max-w-md" style={{ color: 'var(--text-muted)' }}>
+                Technologies I reach for to deliver robust, production-ready products.
+              </p>
+            </div>
+          </AnimatedSection>
+
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-5 auto-rows-fr">
+            {skillGroups.map((group, gi) => (
+              <motion.div key={gi} variants={staggerChild} className="h-full">
+                <SpotlightCard accent={group.accent} className="h-full">
+                  <div className="flex items-center gap-3 mb-5">
+                    <span className="card-icon" style={{ '--spot-accent': group.accent }}>
+                      <group.icon size={20} />
+                    </span>
+                    <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{group.label}</h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    {group.items.map((skill, si) => (
+                      <motion.div
+                        key={si}
+                        whileHover={{ y: -3 }}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl"
+                        style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}
+                      >
+                        <img src={skill.logo} alt={skill.name} className="w-5 h-5 object-contain" />
+                        <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{skill.name}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </SpotlightCard>
+              </motion.div>
+            ))}
+          </StaggerContainer>
+        </div>
+
+        {/* Continuous marquee */}
+        <AnimatedSection delay={0.2} className="mt-10">
+          <div className="marquee">
+            <div className="marquee-track">
+              {[...allSkills, ...allSkills].map((skill, i) => (
+                <div key={i} className="marquee-chip">
+                  <img src={skill.logo} alt={skill.name} />
+                  <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>{skill.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </AnimatedSection>
+      </section>
+
+      {/* ─── Projects Section ─── */}
+      <section id="projects" className="relative py-24 px-6 aurora-bg">
+        <div className="dot-grid" />
+        <div className="max-w-7xl mx-auto relative z-10">
+          <AnimatedSection>
+            <Eyebrow>Projects</Eyebrow>
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
+              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+                Featured <span className="gradient-text">work</span>
+              </h2>
+              <p className="text-base max-w-md" style={{ color: 'var(--text-muted)' }}>
+                Shipped products — hover to explore, click to watch each one in action.
+              </p>
+            </div>
+          </AnimatedSection>
+
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-5 auto-rows-fr" staggerDelay={0.12}>
+            {projects.map((project, index) => {
+              const featured = index === 0 || index === 3;
+              return (
+                <div key={index} className={featured ? 'md:col-span-2' : ''}>
+                  <ProjectCard project={project} index={index} onOpen={setSelectedDemo} featured={featured} />
+                </div>
+              );
+            })}
+          </StaggerContainer>
+        </div>
+      </section>
+
+      {/* ─── Achievements & Certifications Section ─── */}
+      <section id="achievements" className="relative py-24 px-6 overflow-hidden">
+        <div className="max-w-7xl mx-auto relative z-10">
+          <AnimatedSection>
+            <Eyebrow>Credentials &amp; Milestones</Eyebrow>
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
+              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+                Achievements &amp; <span className="gradient-text">Certifications</span>
+              </h2>
+              <p className="text-base max-w-md" style={{ color: 'var(--text-muted)' }}>
+                Verified industry certifications, client excellence metrics, and engineering awards.
+              </p>
+            </div>
+          </AnimatedSection>
+
+          {/* Key Achievements Grid */}
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+            {achievements.map((item, i) => (
+              <motion.div key={i} variants={staggerChild} className="h-full">
+                <SpotlightCard accent={item.color} className="h-full" innerClassName="p-6 flex flex-col justify-between h-full">
+                  <div>
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <span className="text-3xl font-extrabold" style={{ color: item.color }}>{item.stat}</span>
+                      <span className="text-[0.7rem] uppercase tracking-wider font-semibold" style={{ color: 'var(--text-muted)' }}>{item.statLabel}</span>
+                    </div>
+                    <span className="text-[0.65rem] uppercase tracking-widest font-mono font-medium" style={{ color: 'var(--accent)' }}>{item.category}</span>
+                    <h3 className="text-base font-bold mt-1 mb-2" style={{ color: 'var(--text-primary)' }}>{item.title}</h3>
+                    <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{item.description}</p>
+                  </div>
+                </SpotlightCard>
+              </motion.div>
+            ))}
+          </StaggerContainer>
+
+          {/* Certifications Grid */}
+          <AnimatedSection delay={0.2}>
+            <h3 className="text-xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>Verified Certifications</h3>
+          </AnimatedSection>
+
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {certifications.map((cert, i) => (
+              <motion.a
+                key={i}
+                href={cert.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                variants={staggerChild}
+                className="block group"
+              >
+                <SpotlightCard accent={cert.color} innerClassName="p-5 flex flex-col justify-between gap-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h4 className="text-base font-bold group-hover:text-[var(--accent)] transition-colors" style={{ color: 'var(--text-primary)' }}>{cert.title}</h4>
+                      <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{cert.issuer} · {cert.date}</p>
+                    </div>
+                    <span className="px-3 py-1 rounded-full text-[0.65rem] font-semibold uppercase tracking-wider" style={{ background: 'var(--accent-muted)', color: cert.color, border: '1px solid var(--accent-border)' }}>
+                      {cert.badge}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {cert.skills.map((skill, si) => (
+                      <span key={si} className="tech-badge px-2.5 py-1 rounded-lg text-xs font-medium">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </SpotlightCard>
+              </motion.a>
+            ))}
+          </StaggerContainer>
+        </div>
+      </section>
+
+      {/* ─── Contact Section ─── */}
+      <section id="contact" className="relative py-24 px-6 overflow-hidden">
+        <div className="max-w-7xl mx-auto relative z-10">
+          <AnimatedSection>
+            <Eyebrow>Contact</Eyebrow>
+          </AnimatedSection>
+
+          <div className="grid lg:grid-cols-[1fr_1fr] gap-5 items-stretch">
+            {/* Statement / primary CTA */}
+            <AnimatedSection delay={0.1} className="h-full">
+              <SpotlightCard className="h-full" innerClassName="flex flex-col justify-between gap-7 p-7">
+                <div>
+                  <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight mb-4">
+                    Let's build <span className="gradient-text">something great</span>.
+                  </h2>
+                  <p className="text-base" style={{ color: 'var(--text-secondary)' }}>
+                    Have a project or role in mind? I'm available for new opportunities and would love to hear from you.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <motion.a
+                    href="mailto:okwjosh123@gmail.com"
+                    className="btn-primary flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold text-white relative overflow-hidden"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    <Mail size={18} />
+                    Send a message
+                  </motion.a>
+                  <motion.a
+                    href="https://calendar.app.google/dhw5oV78rkQKnZSo8"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-glass flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold"
+                    style={{ color: 'var(--text-primary)' }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    <Calendar size={18} style={{ color: 'var(--accent)' }} />
+                    Book a call
+                  </motion.a>
+                </div>
+              </SpotlightCard>
             </AnimatedSection>
+
+            {/* Contact link cards */}
+            <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {contactLinks.map((link) => (
+                <motion.a
+                  key={link.label}
+                  variants={staggerChild}
+                  href={link.href}
+                  target={link.href.startsWith('mailto') ? undefined : '_blank'}
+                  rel="noopener noreferrer"
+                  className="h-full"
+                >
+                  <SpotlightCard accent={link.color} className="h-full" innerClassName="flex flex-col gap-3 p-6">
+                    <div className="flex items-center justify-between">
+                      <span className="card-icon" style={{ '--spot-accent': link.color }}>
+                        {link.icon === 'image' ? (
+                          <img src={link.image} alt={link.label} className="w-5 h-5 object-contain" style={{ filter: 'brightness(0) saturate(100%) invert(45%) sepia(96%) saturate(1817%) hue-rotate(88deg) brightness(94%) contrast(88%)' }} />
+                        ) : (
+                          <link.icon size={20} />
+                        )}
+                      </span>
+                      <ArrowUpRight size={18} style={{ color: 'var(--text-muted)' }} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{link.label}</p>
+                      <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{link.sub}</p>
+                    </div>
+                  </SpotlightCard>
+                </motion.a>
+              ))}
+            </StaggerContainer>
           </div>
         </div>
       </section>
 
-      <div className="section-divider" />
-
-      {/* ─── Skills Section ─── */}
-      <section id="skills" className="relative py-24 px-6">
+      {/* ─── Footer ─── */}
+      <footer className="footer-gradient relative pt-16 px-6 overflow-hidden" style={{ borderTop: '1px solid var(--border-color)' }}>
         <div className="max-w-7xl mx-auto relative z-10">
-          <AnimatedSection>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-[2px]" style={{ background: 'linear-gradient(to right, var(--accent), rgba(168,85,247,0.6))' }} />
-              <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--accent)' }}>Skills</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-3">
-              <span className="gradient-text">My Toolkit</span>
-            </h2>
-            <p className="text-base mb-10 max-w-lg" style={{ color: 'var(--text-muted)' }}>
-              Tools and technologies I use to deliver robust products.
-            </p>
-          </AnimatedSection>
-
-          <StaggerContainer className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {skills.map((skill, index) => (
-              <motion.div
-                key={index}
-                variants={staggerChild}
-                className="skill-card glow-card p-5 rounded-2xl flex items-center gap-4 cursor-default"
-              >
-                <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
-                  <img src={skill.logo} alt={skill.name} className="w-9 h-9 object-contain" />
-                </div>
-                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{skill.name}</span>
-              </motion.div>
-            ))}
-          </StaggerContainer>
-        </div>
-      </section>
-
-      <div className="section-divider" />
-
-      {/* ─── Projects Section ─── */}
-      <section id="projects" className="relative py-24 px-6 aurora-bg">
-        <div className="max-w-7xl mx-auto relative z-10">
-          <AnimatedSection>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-[2px]" style={{ background: 'linear-gradient(to right, var(--accent), rgba(16,185,129,0.6))' }} />
-              <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--accent)' }}>Projects</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-3">
-              <span className="gradient-text">Featured Work</span>
-            </h2>
-            <p className="text-base mb-10 max-w-lg" style={{ color: 'var(--text-muted)' }}>
-              Selected work showcasing product thinking and engineering depth.
-            </p>
-          </AnimatedSection>
-
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-6" staggerDelay={0.15}>
-            {projects.map((project, index) => (
-              <motion.div
-                key={index}
-                variants={staggerChild}
-                className="project-card glow-card rounded-2xl overflow-hidden group"
-              >
-                {/* Circular floating image + content side by side */}
-                <div className="p-6 flex flex-col sm:flex-row items-center gap-5">
-                  {/* Circular image with float */}
-                  <motion.div
-                    className="relative flex-shrink-0"
-                    animate={{ y: [0, -8, 0] }}
-                    transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: index * 0.4 }}
-                  >
-                    <div
-                      className="absolute -inset-1 rounded-full blur-md opacity-30"
-                      style={{ background: project.color }}
-                    />
-                    <img
-                      src={project.image}
-                      alt={project.title}
-                      className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover object-center relative z-10 border-2"
-                      style={{ borderColor: 'var(--border-color)' }}
-                    />
-                  </motion.div>
-
-                  {/* Text content */}
-                  <div className="flex-1 space-y-3 text-center sm:text-left">
-                    <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{project.title}</h3>
-                    <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{project.description}</p>
-
-                    <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                      {project.tech.map((tech, i) => (
-                        <span key={i} className="tech-badge px-3 py-1.5 rounded-lg text-xs font-medium">
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-
-                    <motion.button
-                      onClick={() => setSelectedDemo(project)}
-                      className="demo-btn w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold"
-                      style={{ color: 'var(--accent)' }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Video size={18} />
-                      <span>Watch Demo</span>
-                    </motion.button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </StaggerContainer>
-        </div>
-      </section>
-
-      <div className="section-divider" />
-
-      {/* ─── Contact Section ─── */}
-      <section id="contact" className="relative py-24 px-6">
-        <Particles count={10} />
-
-        <div className="max-w-7xl mx-auto relative z-10">
-          <AnimatedSection>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-[2px]" style={{ background: 'linear-gradient(to right, rgba(16,185,129,0.6), var(--accent))' }} />
-              <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--accent)' }}>Contact</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-3">
-              <span className="gradient-text">Let's Connect</span>
-            </h2>
-            <p className="text-base mb-10 max-w-lg" style={{ color: 'var(--text-muted)' }}>
-              Have a project or role in mind? I'd love to hear from you.
-            </p>
-          </AnimatedSection>
-
-          <AnimatedSection delay={0.2}>
-            <div className="glow-card rounded-2xl p-8 max-w-2xl">
-              <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-col md:flex-row justify-between gap-10 pb-12">
+            <div className="max-w-sm">
+              <h3 className="text-2xl font-bold tracking-tight mb-3" style={{ color: 'var(--text-primary)' }}>
+                Okwoli<span style={{ color: 'var(--accent)' }}>.</span>
+              </h3>
+              <p className="text-sm leading-relaxed mb-5" style={{ color: 'var(--text-muted)' }}>
+                Flutter developer building polished, user-focused mobile apps. Open to new opportunities worldwide.
+              </p>
+              <div className="flex items-center gap-3">
                 {[
-                  { href: 'https://github.com/OkwJosh', icon: Github, label: 'GitHub', color: '#8b5cf6' },
-                  { href: 'https://linkedin.com/in/joshokw', icon: Linkedin, label: 'LinkedIn', color: '#06b6d4' },
-                  { href: 'https://www.upwork.com/freelancers/~01a1d8b4e20769fc75?mp_source=share', icon: 'image', image: upworkLogo, label: 'Upwork', color: '#14a800' },
-                  { href: 'mailto:okwjosh123@gmail.com', icon: Mail, label: 'Email', color: '#f472b6' },
-                  { href: 'https://calendar.app.google/dhw5oV78rkQKnZSo8', icon: Video, label: 'Book a Call', color: '#34d399' },
-                ].map((link) => (
+                  { href: 'https://github.com/OkwJosh', icon: Github },
+                  { href: 'https://linkedin.com/in/joshokw', icon: Linkedin },
+                  { href: 'mailto:okwjosh123@gmail.com', icon: Mail },
+                ].map((link, i) => (
                   <motion.a
-                    key={link.label}
+                    key={i}
                     href={link.href}
                     target={link.href.startsWith('mailto') ? undefined : '_blank'}
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 px-5 py-3.5 rounded-xl text-sm font-medium transition-all duration-300"
-                    style={{
-                      background: `${link.color}10`,
-                      border: `1px solid ${link.color}30`,
-                      color: link.color,
-                    }}
-                    whileHover={{
-                      scale: 1.05,
-                      boxShadow: `0 0 20px ${link.color}30`,
-                    }}
-                    whileTap={{ scale: 0.95 }}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+                    style={{ color: 'var(--text-muted)', background: 'var(--accent-muted)', border: '1px solid var(--border-color)' }}
+                    whileHover={{ scale: 1.1, y: -2, color: 'var(--accent)' }}
                   >
-                    {link.icon === 'image' ? (
-                      <img
-                        src={link.image}
-                        alt={link.label}
-                        className="w-[18px] h-[18px] object-contain"
-                        style={{ filter: 'brightness(0) saturate(100%) invert(45%) sepia(96%) saturate(1817%) hue-rotate(88deg) brightness(94%) contrast(88%)' }}
-                      />
-                    ) : (
-                      <link.icon size={18} />
-                    )}
-                    <span>{link.label}</span>
-                    <ExternalLink size={14} className="opacity-50" />
+                    <link.icon size={17} />
                   </motion.a>
                 ))}
               </div>
             </div>
-          </AnimatedSection>
-        </div>
-      </section>
 
-      {/* ─── Footer ─── */}
-      <footer className="footer-gradient py-10 px-6" style={{ borderTop: '1px solid var(--border-color)' }}>
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <motion.p
-            className="text-xs"
-            style={{ color: 'var(--text-muted)' }}
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            &copy; 2025 Okwoli Joshua Okwoli. Crafted with{' '}
-            <span style={{ color: 'var(--accent)' }}>&hearts;</span> and React.
-          </motion.p>
+            <div className="grid grid-cols-2 gap-12">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: 'var(--text-primary)' }}>Explore</p>
+                <ul className="space-y-2.5">
+                  {navItems.map((item) => (
+                    <li key={item}>
+                      <button onClick={() => scrollToSection(item)} className="footer-link text-sm capitalize">{item}</button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: 'var(--text-primary)' }}>Connect</p>
+                <ul className="space-y-2.5">
+                  {[
+                    { href: 'https://github.com/OkwJosh', label: 'GitHub' },
+                    { href: 'https://linkedin.com/in/joshokw', label: 'LinkedIn' },
+                    { href: 'https://www.upwork.com/freelancers/~01a1d8b4e20769fc75?mp_source=share', label: 'Upwork' },
+                    { href: 'mailto:okwjosh123@gmail.com', label: 'Email' },
+                  ].map((link) => (
+                    <li key={link.label}>
+                      <a href={link.href} target={link.href.startsWith('mailto') ? undefined : '_blank'} rel="noopener noreferrer" className="footer-link text-sm">{link.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
 
-          <motion.div
-            className="flex items-center gap-3"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            {[
-              { href: 'https://github.com/OkwJosh', icon: Github },
-              { href: 'https://linkedin.com/in/joshokw', icon: Linkedin },
-              { href: 'mailto:okwjosh123@gmail.com', icon: Mail },
-            ].map((link, i) => (
-              <motion.a
-                key={i}
-                href={link.href}
-                target={link.href.startsWith('mailto') ? undefined : '_blank'}
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-lg flex items-center justify-center transition-all"
-                style={{ color: 'var(--text-muted)', background: 'var(--accent-muted)' }}
-                whileHover={{ scale: 1.1, y: -2 }}
-              >
-                <link.icon size={16} />
-              </motion.a>
-            ))}
-          </motion.div>
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 py-6" style={{ borderTop: '1px solid var(--border-color)' }}>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              &copy; 2026 Okwoli Joshua &middot; Flutter Developer &amp; Software Engineer
+            </p>
+            <button onClick={() => scrollToSection('home')} className="footer-link text-xs flex items-center gap-1.5">
+              Back to top <ArrowUpRight size={13} />
+            </button>
+          </div>
         </div>
+
+        <div className="footer-wordmark select-none -mb-4 md:-mb-10">OKWOLI</div>
       </footer>
     </div>
   );

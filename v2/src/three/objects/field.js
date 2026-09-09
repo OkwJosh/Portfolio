@@ -37,7 +37,8 @@ void main() {
 // redeclaring it as mediump while the vertex stage stays highp makes `vAlpha`
 // a mismatched varying, which strict drivers reject at link time.
 const fragmentShader = /* glsl */ `
-uniform vec3 uColor;
+uniform vec3  uColor;
+uniform float uAlpha;
 varying float vAlpha;
 
 void main() {
@@ -46,7 +47,7 @@ void main() {
   if (d > 0.5) discard;
   float falloff = 1.0 - smoothstep(0.05, 0.5, d);
 
-  gl_FragColor = vec4(uColor, falloff * vAlpha * 0.75);
+  gl_FragColor = vec4(uColor, falloff * vAlpha * uAlpha);
 }
 `;
 
@@ -87,6 +88,7 @@ export class Field {
       uSize: { value: 14 },
       uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
       uColor: { value: new THREE.Color(accent) },
+      uAlpha: { value: 0.75 },
     };
 
     this.material = new THREE.ShaderMaterial({
@@ -105,14 +107,20 @@ export class Field {
   }
 
   setAccent(hex) {
-    const target = new THREE.Color(hex);
-    animate(this.uniforms.uColor.value, {
-      r: target.r,
-      g: target.g,
-      b: target.b,
-      duration: 900,
-      ease: 'outQuad',
-    });
+    const { r, g, b } = new THREE.Color(hex);
+    animate(this.uniforms.uColor.value, { r, g, b, duration: 900, ease: 'outQuad' });
+  }
+
+  /**
+   * Additive points add light, so on a near-white page they simply vanish.
+   * On light the field switches to normal blending and darkens instead.
+   * @param {'light' | 'dark'} theme
+   */
+  setTheme(theme) {
+    const light = theme === 'light';
+    this.material.blending = light ? THREE.NormalBlending : THREE.AdditiveBlending;
+    this.material.needsUpdate = true;
+    this.uniforms.uAlpha.value = light ? 0.45 : 0.75;
   }
 
   update({ dt, elapsed, pointer }) {

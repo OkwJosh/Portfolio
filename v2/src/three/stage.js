@@ -22,6 +22,8 @@ export class Stage {
     this.ticks = new Set();
     this.running = false;
     this.elapsed = 0;
+    /** Smoothed frames per second — read by the HUD. */
+    this.fps = 60;
     this._raf = 0;
 
     this.renderer = new THREE.WebGLRenderer({
@@ -92,9 +94,14 @@ export class Stage {
     const dt = Math.min(this.clock.getDelta(), 1 / 30);
     this.elapsed += dt;
 
+    // Exponential moving average — a raw 1/dt readout is unreadably jittery.
+    if (dt > 0) this.fps += (1 / dt - this.fps) * 0.05;
+
     pointer.update(dt);
 
-    const ctx = { dt, elapsed: this.elapsed, pointer };
+    // `camera` is in the context because entities that project the cursor into
+    // world space (the tree) need it, and re-importing the stage would cycle.
+    const ctx = { dt, elapsed: this.elapsed, pointer, camera: this.camera };
     for (const fn of this.ticks) fn(ctx);
     for (const entity of this.entities) entity.update?.(ctx);
 

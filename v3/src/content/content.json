@@ -1,0 +1,364 @@
+{
+  "seo": {
+    "siteUrl": "https://joshokwoli.dev",
+    "title": "Okwoli Joshua — Software Engineer",
+    "tagline": "Mobile, backend & cloud engineer",
+    "description": "Okwoli Joshua is a software engineer building products end to end — Flutter on the client, Python and Node behind it, Google Cloud and Firebase underneath. Portfolio of shipped mobile, backend and cloud work.",
+    "keywords": [
+      "Okwoli Joshua",
+      "software engineer",
+      "Flutter developer",
+      "mobile app developer",
+      "backend engineer",
+      "Firebase",
+      "Google Cloud",
+      "Python",
+      "Node.js",
+      "Nigeria"
+    ],
+    "ogImage": "og-card.jpg",
+    "twitter": "",
+    "locale": "en_US"
+  },
+  "identity": {
+    "name": "Okwoli Joshua",
+    "role": "Software Engineer",
+    "focus": "Mobile · Backend · Cloud",
+    "location": "Nigeria — WAT",
+    "email": "okwjosh123@gmail.com",
+    "bio": "I build products end to end — Flutter on the client, Python and Node behind it, Google Cloud and Firebase underneath.",
+    "portrait": "pfp-portrait.jpg",
+    "resume": "Okwoli_Joshua.pdf",
+    "accent": "#4f5bff",
+    "headline": [
+      "Mobile,",
+      "backend",
+      "& cloud."
+    ]
+  },
+  "projects": [
+    {
+      "id": "nurahelp",
+      "title": "NuraHelp",
+      "category": "Healthcare · AI",
+      "year": "2025",
+      "platform": "iOS · Android",
+      "accent": "#34d399",
+      "tech": [
+        "Flutter",
+        "Firebase",
+        "REST APIs"
+      ],
+      "description": "Cross-platform appointment scheduling with AI chat, real-time availability and secure patient records.",
+      "image": "nurahelp.png",
+      "gallery": [],
+      "demo": "https://player.vimeo.com/video/1165404715",
+      "link": "",
+      "role": "Solo developer — architecture through release",
+      "overview": "NuraHelp began as a scheduling problem and turned into a trust problem. Clinics needed slots that were correct the instant a patient looked at them, and patients needed to feel that their records were going somewhere safe. The app pairs a live availability layer with an AI assistant that triages the reason for a visit before a human ever reads it, so the booking that lands on a clinic's desk already has context attached.",
+      "highlights": [
+        "Firestore listeners keep slot availability live, so two patients cannot claim the same appointment.",
+        "The AI consultation assistant streams its response over REST rather than blocking on a full completion.",
+        "Role-based security rules separate patient records from clinic-side scheduling data.",
+        "Offline reads are cached so the appointment list still opens with no signal."
+      ],
+      "recognition": [
+        "Healthcare AI Innovation — hackathon finalist, top 5"
+      ]
+    },
+    {
+      "id": "progear",
+      "title": "ProGear",
+      "category": "E-Commerce",
+      "year": "2025",
+      "platform": "iOS · Android",
+      "accent": "#7c3aed",
+      "tech": [
+        "Flutter",
+        "Dart",
+        "Firebase",
+        "GetX"
+      ],
+      "description": "A full storefront for gaming gear — catalogue browsing, secure checkout and live order tracking.",
+      "image": "PG.jpg",
+      "gallery": [],
+      "demo": "https://player.vimeo.com/video/1165377998",
+      "link": "",
+      "role": "Solo developer — storefront and checkout",
+      "overview": "ProGear is a full storefront for gaming hardware: browse, compare, buy, and watch the parcel move. The interesting work was not the catalogue but the checkout — making sure a flaky connection during payment could never produce two orders or one silent failure, and that the order state a customer sees always matches the one the backend believes in.",
+      "highlights": [
+        "GetX drives reactive state across catalogue, cart and checkout without prop-drilling.",
+        "Order writes are idempotent, so a retried payment cannot create a duplicate order.",
+        "Product queries are paginated with cached images to keep scrolling cheap on mid-range devices.",
+        "Order tracking reads from a single source of truth shared with the fulfilment side."
+      ],
+      "recognition": []
+    },
+    {
+      "id": "payoff",
+      "title": "PayOff",
+      "category": "Fintech",
+      "year": "2024",
+      "platform": "iOS · Android",
+      "accent": "#06b6d4",
+      "tech": [
+        "Flutter",
+        "Firebase",
+        "GetX"
+      ],
+      "description": "Offline-first peer-to-peer payments with QR transfers, transaction history and secure auth.",
+      "image": "payoff.png",
+      "gallery": [],
+      "demo": "https://player.vimeo.com/video/1165405120",
+      "link": "",
+      "role": "Solo developer — offline-first architecture",
+      "overview": "PayOff is a peer-to-peer payment app built for places where connectivity is not a given. It assumes the network will drop mid-transfer and is designed around that: transactions are written locally first, encoded into a QR code the other party can scan in person, and reconciled with the server whenever a connection returns.",
+      "highlights": [
+        "A local encrypted write queue reconciles against the server on reconnect.",
+        "QR encode/decode carries a signed transfer payload for genuinely offline handoff.",
+        "Session persistence with re-auth guards on anything that moves money.",
+        "Transaction history is derived from the local ledger, so it opens instantly."
+      ],
+      "recognition": [
+        "Offline-first payment engine — sub-50ms QR scan authentication"
+      ]
+    },
+    {
+      "id": "brainstorm",
+      "title": "BrainStorm",
+      "category": "Productivity",
+      "year": "2024",
+      "platform": "iOS · Android",
+      "accent": "#f472b6",
+      "tech": [
+        "Flutter",
+        "Dart",
+        "Canvas",
+        "Local Storage"
+      ],
+      "description": "A mindmapping tool for organising ideas as nodes and connections on an infinite canvas.",
+      "image": "brainstorm.png",
+      "gallery": [],
+      "demo": "https://player.vimeo.com/video/1165404664",
+      "link": "",
+      "role": "Solo developer — custom canvas engine",
+      "overview": "BrainStorm is a mindmapping tool with no physics library and no graph framework behind it — just a custom painter on an infinite, pannable canvas. Nodes are hit-tested and dragged by hand-written maths, which kept the dependency list at nothing and made the interaction feel immediate rather than simulated.",
+      "highlights": [
+        "A custom Flutter painter renders the infinite pannable canvas.",
+        "Hit-testing and node dragging are hand-written — no physics dependency.",
+        "Graphs persist locally, so a map survives a cold start untouched.",
+        "Connections re-route as nodes move, recalculated per frame rather than cached."
+      ],
+      "recognition": []
+    }
+  ],
+  "skillGroups": [
+    {
+      "label": "Languages",
+      "items": [
+        {
+          "name": "Dart",
+          "logo": "logos/dart.png"
+        },
+        {
+          "name": "Python",
+          "logo": "logos/python.png"
+        },
+        {
+          "name": "JavaScript",
+          "logo": "logos/javascript.png"
+        }
+      ]
+    },
+    {
+      "label": "Mobile & Frontend",
+      "items": [
+        {
+          "name": "Flutter",
+          "logo": "logos/flutter.png"
+        },
+        {
+          "name": "GetX",
+          "logo": "logos/getx.png"
+        },
+        {
+          "name": "BLoC",
+          "logo": "logos/bloc.png"
+        }
+      ]
+    },
+    {
+      "label": "Backend & Data",
+      "items": [
+        {
+          "name": "Node.js",
+          "logo": "logos/node.png"
+        },
+        {
+          "name": "Django",
+          "logo": "logos/django.png"
+        },
+        {
+          "name": "MongoDB",
+          "logo": "logos/mongodb.png"
+        },
+        {
+          "name": "REST APIs",
+          "logo": "logos/rest_api.png"
+        }
+      ]
+    },
+    {
+      "label": "Cloud & Tooling",
+      "items": [
+        {
+          "name": "Google Cloud",
+          "logo": ""
+        },
+        {
+          "name": "Firebase",
+          "logo": "logos/firebase.png"
+        },
+        {
+          "name": "CI/CD",
+          "logo": ""
+        },
+        {
+          "name": "Git",
+          "logo": "logos/git.png"
+        },
+        {
+          "name": "GitHub",
+          "logo": "logos/github.png",
+          "mono": true
+        }
+      ]
+    }
+  ],
+  "socials": [
+    {
+      "label": "GitHub",
+      "handle": "@OkwJosh",
+      "href": "https://github.com/OkwJosh"
+    },
+    {
+      "label": "LinkedIn",
+      "handle": "in/joshokw",
+      "href": "https://linkedin.com/in/joshokw"
+    },
+    {
+      "label": "Upwork",
+      "handle": "Hire me",
+      "href": "https://www.upwork.com/freelancers/~01a1d8b4e20769fc75?mp_source=share"
+    },
+    {
+      "label": "Email",
+      "handle": "okwjosh123@gmail.com",
+      "href": "mailto:okwjosh123@gmail.com"
+    }
+  ],
+  "certifications": [
+    {
+      "id": "gcp-cloud-eng",
+      "title": "Associate Cloud Engineer",
+      "issuer": "Google Cloud",
+      "date": "2024",
+      "badge": "Verified",
+      "color": "#4285F4",
+      "logo": "logos/firebase.png",
+      "skills": [
+        "GCP",
+        "Cloud Architecture",
+        "App Engine",
+        "Docker"
+      ],
+      "credentialUrl": "https://cloud.google.com/certification"
+    },
+    {
+      "id": "meta-mobile-dev",
+      "title": "Meta Certified Mobile Developer",
+      "issuer": "Meta",
+      "date": "2024",
+      "badge": "Certified",
+      "color": "#0666E5",
+      "logo": "",
+      "skills": [
+        "React Native",
+        "Mobile UI/UX",
+        "REST Integration"
+      ],
+      "credentialUrl": "https://www.coursera.org/professional-certificates/meta-android-developer"
+    },
+    {
+      "id": "firebase-prof",
+      "title": "Firebase Application Professional",
+      "issuer": "Google / Firebase",
+      "date": "2024",
+      "badge": "Professional",
+      "color": "#FFCA28",
+      "logo": "logos/firebase.png",
+      "skills": [
+        "Firestore",
+        "Authentication",
+        "Cloud Functions",
+        "Rules"
+      ],
+      "credentialUrl": "https://firebase.google.com/"
+    },
+    {
+      "id": "flutter-expert",
+      "title": "Flutter Cross-Platform Engineering",
+      "issuer": "Google Developer Ecosystem",
+      "date": "2023",
+      "badge": "Specialist",
+      "color": "#02569B",
+      "logo": "logos/flutter.png",
+      "skills": [
+        "Flutter",
+        "Dart",
+        "GetX",
+        "BLoC",
+        "State Management"
+      ],
+      "credentialUrl": "https://flutter.dev"
+    }
+  ],
+  "achievements": [
+    {
+      "id": "upwork-top-rated",
+      "title": "Top-Rated Freelancer on Upwork",
+      "category": "Client Excellence",
+      "stat": "100%",
+      "statLabel": "Job Success Score",
+      "description": "Maintained a 100% Job Success Rate delivering cross-platform mobile solutions for international clients with zero project delays.",
+      "color": "#14a800"
+    },
+    {
+      "id": "shipped-apps",
+      "title": "4 Production Apps Shipped",
+      "category": "Engineering Impact",
+      "stat": "04",
+      "statLabel": "End-to-End Apps",
+      "description": "Architected and launched NuraHelp, ProGear, PayOff, and BrainStorm across iOS and Android with scalable clean architecture.",
+      "color": "#7c3aed"
+    },
+    {
+      "id": "ai-healthcare",
+      "title": "Healthcare AI Innovation Finalist",
+      "category": "Award & Recognition",
+      "stat": "Top 5",
+      "statLabel": "Hackathon Finalist",
+      "description": "Recognized for designing NuraHelp — integrating an AI consultation assistant with real-time appointment scheduling.",
+      "color": "#34d399"
+    },
+    {
+      "id": "fintech-offline",
+      "title": "Offline-First Payment Engine",
+      "category": "Technical Milestone",
+      "stat": "< 50ms",
+      "statLabel": "QR Scan Auth",
+      "description": "Engineered PayOff with local encrypted storage and QR transaction sync for seamless offline P2P transfers.",
+      "color": "#06b6d4"
+    }
+  ]
+}

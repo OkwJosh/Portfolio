@@ -1,0 +1,68 @@
+name: Build and deploy portfolio
+
+# Runs on every push that can change what the site says or how it is built.
+# The Content Studio at /studio commits content.json straight to this branch,
+# so an edit made from a phone lands here and comes out the other side as a
+# fully rebuilt site — static HTML, JSON-LD, sitemap and llms.txt included.
+# That regeneration is the whole reason edits go through git rather than a
+# live database: what crawlers read can never drift from what the site says.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v3/**'
+      - 'firebase.json'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+# A newer commit makes an in-flight build irrelevant. Cancel it rather than
+# racing two deploys to the same site — but never cancel one already uploading.
+concurrency:
+  group: deploy-hosting
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: v3/package-lock.json
+
+      - name: Install
+        working-directory: v3
+        run: npm ci
+
+      - name: Build
+        working-directory: v3
+        run: npm run build
+
+      # Cheap guard against shipping a broken page. The static rendering is
+      # what every non-JS crawler sees, so if it is missing or empty the deploy
+      # is worse than no deploy.
+      - name: Check the crawlable output
+        run: |
+          set -e
+          for file in v3/dist/index.html v3/dist/robots.txt v3/dist/sitemap.xml v3/dist/llms.txt; do
+            test -s "$file" || { echo "::error::missing or empty: $file"; exit 1; }
+          done
+          grep -q 'id="static-content"' v3/dist/index.html \
+            || { echo "::error::static rendering missing from index.html"; exit 1; }
+          grep -q 'application/ld+json' v3/dist/index.html \
+            || { echo "::error::JSON-LD missing from index.html"; exit 1; }
+          echo "crawlable output present"
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: joshokwoli
+          channelId: live
